@@ -1,6 +1,6 @@
 name: Lesson 2
 
-on:
+onn:
   push:
     branches:
       - lesson-2-complete
