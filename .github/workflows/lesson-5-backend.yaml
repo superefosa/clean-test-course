@@ -7,25 +7,22 @@ on:
 
 jobs:
   security_test:
+    name: Execute the PyCharm security test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-    name: Execute the PyCharm security test
+
     steps:
       - uses: actions/checkout@v4
-      - name: Disable Debug
-        run: |
-          sed -i 's/DEBUG = True/DEBUG = False/g' hangry_api/hangry_api/settings.py
-      # Optional: Set up Python if required by the security scanner
-      # - name: Set up Python 3.10
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: "3.10"
+
+      - name: Enforce DEBUG=False for security scan
+        run: sed -i 's/DEBUG = True/DEBUG = False/' hangry_api/hangry_api/settings.py
+
       - name: Run PyCharm Security
-        uses: tonybaloney/pycharm-security@master
+        uses: tonybaloney/pycharm-security@1.25.1
         with:
-          fail_on_warnings: yes
+          fail_on_warnings: true
 
   build_and_test:
     needs: [security_test]
@@ -33,19 +30,26 @@ jobs:
     defaults:
       run:
         working-directory: backend
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Enforce DEBUG=False during unit tests
+        run: sed -i 's/DEBUG = True/DEBUG = False/' hangry_api/hangry_api/settings.py
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pytest django_mock_queries six coverage
+
       - name: Unit Tests
         run: |
-          coverage run -m --source=./hangry_api pytest
+          coverage run --source=hangry_api -m pytest
           coverage report
 
   deploy:
@@ -54,12 +58,15 @@ jobs:
     defaults:
       run:
         working-directory: backend
+
     steps:
       - uses: actions/checkout@v4
-      - name: Disable Debug
-        run: |
-          sed -i 's/DEBUG = True/DEBUG = False/g' hangry_api/hangry_api/settings.py
+
+      - name: Enforce DEBUG=False for deploy
+        run: sed -i 's/DEBUG = True/DEBUG = False/' hangry_api/hangry_api/settings.py
+
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
+
       - name: Deploy to Elastic Beanstalk (placeholder)
-        run: echo Placeholder for Deployment
+        run: echo "Placeholder for Deployment"
