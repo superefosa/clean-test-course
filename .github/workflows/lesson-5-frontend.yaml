@@ -3,7 +3,7 @@ name: Lesson 5 DAST
 on:
   push:
     branches:
-      - lesson-5-complete
+      - lesson-5
 
 jobs:
   function_test:

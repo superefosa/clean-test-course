@@ -3,7 +3,7 @@ name: Lesson 5 SAST
 on:
   push:
     branches:
-      - lesson-5-complete
+      - lesson-5
 
 jobs:
   security_test:
