@@ -3,65 +3,55 @@ name: Lesson 5 SAST
 on:
   push:
     branches:
-      - lesson-5
-
+      - lesson-5-complete
 jobs:
   security_test:
-    name: Execute the PyCharm security test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
+    name: Execute the PyCharm security test
     steps:
       - uses: actions/checkout@v4
-
-      - name: PyCharm Python Security Scanner
-        uses: tonybaloney/pycharm-security@1.25.1
-
+      - name: Disable Debug
+        run: |
+          sed -i 's/DEBUG = True/DEBUG = False/g' hangry_api/hangry_api/settings.py
+      - name: Run PyCharm Security
+        uses: tonybaloney/pycharm-security@master
+        with:
+          fail_on_warnings: "yes"
   build_and_test:
-    name: Build and Run Unit Tests
     needs: [security_test]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install pytest django_mock_queries six coverage
-
       - name: Unit Tests
         run: |
-          coverage run --source=hangry_api -m pytest
+          coverage run -m --source=./hangry_api pytest
           coverage report
-
   deploy:
-    name: Package and Deploy
     needs: [build_and_test]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Generate deployment package
+      - name: Disable Debug
         run: |
-          zip -r deploy.zip . \
-            -x "*.git*" \
-            -x "tests/*" \
-            -x "__pycache__/*"
-
+          sed -i 's/DEBUG = True/DEBUG = False/g' hangry_api/hangry_api/settings.py
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
       - name: "**PLACEHOLDER** Deploy to Elastic Beanstalk"
-        run: echo "Placeholder for AWS Elastic Beanstalk deployment step"
+        run: echo Placeholder for Deployment
