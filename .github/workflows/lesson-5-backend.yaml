@@ -7,7 +7,7 @@ on:
 
 jobs:
   security_test:
-    name: Execute the PyCharm security test
+    name: Execute PyCharm Security Scan
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,7 +25,7 @@ jobs:
           fail_on_warnings: true
 
   build_and_test:
-    needs: [security_test]
+    needs: security_test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,9 +33,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Enforce DEBUG=False during unit tests
-        run: sed -i 's/DEBUG = True/DEBUG = False/' hangry_api/hangry_api/settings.py
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -49,11 +46,12 @@ jobs:
 
       - name: Unit Tests
         run: |
+          sed -i 's/DEBUG = True/DEBUG = False/' hangry_api/hangry_api/settings.py
           coverage run --source=hangry_api -m pytest
           coverage report
 
   deploy:
-    needs: [build_and_test]
+    needs: build_and_test
     runs-on: ubuntu-latest
     defaults:
       run:
